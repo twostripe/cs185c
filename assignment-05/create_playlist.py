@@ -16,8 +16,8 @@ plt.close()
 
 dir = "D:/Mark's Temp Folder/github/cs185c/assignment-05/"
   
-#songs = np.array(list(csv.reader(open(os.path.join(dir, "songs.csv"), 'rt'))))
-songs = np.array(list(csv.reader(open(os.path.join(dir, "songs_limited.csv"), 'rt'))))
+songs = np.array(list(csv.reader(open(os.path.join(dir, "songs.csv"), 'rt'))))
+#songs = np.array(list(csv.reader(open(os.path.join(dir, "songs_limited.csv"), 'rt'))))
 header = np.array(list(csv.reader(open(os.path.join(dir, "header.csv"), 'rt'))))
 
 songs_by_id = {}
@@ -170,6 +170,6 @@ for song in most_similar_taste:
 print ("Reccomended Songs For You:")
 
 for song in reccomended_songs:
-    if reccomended_songs[song] == highest_reccomended:
-        print("\"" + songs_by_id[song]['name'] + "\" by " + songs_by_id[song]['artist'] + " [weight of " + str(highest_reccomended) +"]")
+#    if reccomended_songs[song] == highest_reccomended:
+        print("\"" + songs_by_id[song]['name'] + "\" by " + songs_by_id[song]['artist'] + " [weight of " + str(reccomended_songs[song]) +"]")
     
