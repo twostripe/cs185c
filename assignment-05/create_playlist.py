@@ -12,15 +12,17 @@ import numpy as np
 
 import os
 
+plt.close()
+
 dir = "D:/Mark's Temp Folder/github/cs185c/assignment-05/"
   
-songs = np.array(list(csv.reader(open(os.path.join(dir, "songs.csv"), 'rt'))))
-#songs = np.array(list(csv.reader(open(os.path.join(dir, "songs_limited.csv"), 'rt'))))
+#songs = np.array(list(csv.reader(open(os.path.join(dir, "songs.csv"), 'rt'))))
+songs = np.array(list(csv.reader(open(os.path.join(dir, "songs_limited.csv"), 'rt'))))
 header = np.array(list(csv.reader(open(os.path.join(dir, "header.csv"), 'rt'))))
 
-song_ids = []
+songs_by_id = {}
 for song in songs:
-    song_ids.append(song[1])
+    songs_by_id[song[1]] = {'id': song[1], 'name': song[3], 'artist': song[2]}
                  
 def build_playlist(genre, num_songs):
     # the genre we're looking for
@@ -106,20 +108,67 @@ for person in playlists_collection:
 def plot_taste(taste, type):
     plt.plot(range(len(taste)), taste.values(), type)
 
-# we can use this "taste" list to see a DJ's taste
-plot_taste(taste_list['Alfrig'], 'r+')
+def plot_tastes(taste_a, taste_b):
+    plt.figure()
+    plot_taste(taste_a, 'b+')
+    plot_taste(taste_b, 'r+')
+    
+    # find where the two tastes share a song
+    shared_taste = {}
+    for song in my_taste: 
+        if (song in taste_list['Alfrig']): 
+            shared_taste[song] = my_taste[song]
+    
+    plot_taste(shared_taste, 'go')
+    
+    plt.ylim(ymin=0)
+    plt.show()
 
 # make a new taste
 my_taste = build_master_list(build_playlist_set("hip-hop", 0, "pop", 1))
-plot_taste(my_taste, 'b+')
 
-# find where the two tastes share a song
-shared_taste = {}
-for song in my_taste: 
-    if (song in taste_list['Alfrig']): 
-        shared_taste[song] = my_taste[song]
 
-plot_taste(shared_taste, 'go')
+# figure out how similar taste_b is to tast_a
+# returns a number > 0
+# not necessarily <= 1
+# ie, 1.0 is not 100% similar ... i think
+def find_similarity(taste_a, taste_b):
+    # this is basically the same as multiplying them together if they were sparse matrices
+    weights = []
+    for song in taste_a:
+        if (song in taste_b):
+            weights.append(taste_a[song] * taste_b[song])
+        else:
+            weights.append(0)
+            
+    return np.mean(weights)
 
-plt.ylim(0, 4)
-plt.show()
+largest_similarity = 0
+most_similar_taste = {}
+#print ("similarity with '"+ "base" +"': " + str(find_similarity(my_taste, my_taste)))
+for profile in taste_list:
+    similarity = find_similarity(my_taste, taste_list[profile])
+    print ("similarity with '"+ profile +"': " + str(similarity))
+    if (similarity > largest_similarity):
+        largest_similarity = similarity
+        most_similar_taste = taste_list[profile]
+        print("---> choosing this one")
+
+plot_tastes(my_taste, most_similar_taste)
+
+
+## Search the most_similar_taste for all the songs NOT in my_taste
+reccomended_songs = {}
+highest_reccomended = 0
+for song in most_similar_taste:
+    if (song in my_taste):
+        reccomended_songs[song] = most_similar_taste[song]
+        print("[" + song + "]: " + str(reccomended_songs[song]))
+        highest_reccomended = highest_reccomended if most_similar_taste[song] < highest_reccomended else most_similar_taste[song]
+        
+## find most reccomended songs and work our way down
+print ("RECCOMENDING SONGS FOR YOU")
+for song in reccomended_songs:
+    if reccomended_songs[song] == highest_reccomended:
+        print(songs_by_id[song]['name'] + " by " + songs_by_id[song]['artist'] + "(weight of " + str(highest_reccomended) +")")
+    
