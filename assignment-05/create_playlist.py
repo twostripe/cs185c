@@ -148,11 +148,11 @@ most_similar_taste = {}
 #print ("similarity with '"+ "base" +"': " + str(find_similarity(my_taste, my_taste)))
 for profile in taste_list:
     similarity = find_similarity(my_taste, taste_list[profile])
-    print ("similarity with '"+ profile +"': " + str(similarity))
+#    print ("similarity with '"+ profile +"': " + str(similarity))
     if (similarity > largest_similarity):
         largest_similarity = similarity
         most_similar_taste = taste_list[profile]
-        print("---> choosing this one")
+#        print("---> choosing this one")
 
 plot_tastes(my_taste, most_similar_taste)
 
@@ -163,12 +163,13 @@ highest_reccomended = 0
 for song in most_similar_taste:
     if (song in my_taste):
         reccomended_songs[song] = most_similar_taste[song]
-        print("[" + song + "]: " + str(reccomended_songs[song]))
+#        print("[" + song + "]: " + str(reccomended_songs[song]))
         highest_reccomended = highest_reccomended if most_similar_taste[song] < highest_reccomended else most_similar_taste[song]
         
 ## find most reccomended songs and work our way down
-print ("RECCOMENDING SONGS FOR YOU")
+print ("Reccomended Songs For You:")
+
 for song in reccomended_songs:
     if reccomended_songs[song] == highest_reccomended:
-        print(songs_by_id[song]['name'] + " by " + songs_by_id[song]['artist'] + "(weight of " + str(highest_reccomended) +")")
+        print("\"" + songs_by_id[song]['name'] + "\" by " + songs_by_id[song]['artist'] + " [weight of " + str(highest_reccomended) +"]")
     
