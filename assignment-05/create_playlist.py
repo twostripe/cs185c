@@ -4,6 +4,7 @@ import	csv
 import	sys
 import	warnings
 import	threading	as	th
+import collections
 from random import randint
 from random import random
 import matplotlib.pyplot as plt
@@ -16,8 +17,8 @@ plt.close()
 
 dir = "D:/Mark's Temp Folder/github/cs185c/assignment-05/"
   
-songs = np.array(list(csv.reader(open(os.path.join(dir, "songs.csv"), 'rt'))))
-#songs = np.array(list(csv.reader(open(os.path.join(dir, "songs_limited.csv"), 'rt'))))
+#songs = np.array(list(csv.reader(open(os.path.join(dir, "songs.csv"), 'rt'))))
+songs = np.array(list(csv.reader(open(os.path.join(dir, "songs_limited.csv"), 'rt'))))
 header = np.array(list(csv.reader(open(os.path.join(dir, "header.csv"), 'rt'))))
 
 songs_by_id = {}
@@ -109,19 +110,56 @@ def plot_taste(taste, type):
     plt.plot(range(len(taste)), taste.values(), type)
 
 def plot_tastes(taste_a, taste_b):
-    plt.figure()
-    plot_taste(taste_a, 'b+')
-    plot_taste(taste_b, 'r+')
+    fig = plt.figure()
+    frame = plt.gca()
+    
+    max_value = 0
+
+    data_a = collections.OrderedDict(songs_by_id)
+    data_b = collections.OrderedDict(songs_by_id)
+    data_shared_a = collections.OrderedDict(songs_by_id)
+    data_shared_b = collections.OrderedDict(songs_by_id)
+
+    for song in data_a:
+        data_a[song] = np.nan
+        data_b[song] = np.nan
+        data_shared_a[song] = np.nan
+        data_shared_b[song] = np.nan
+
+    for song in taste_a:
+        data_a[song] = taste_a[song]
+        max_value = max_value if max_value > taste_a[song] else taste_a[song]
+
+    for song in taste_b:
+        data_b[song] = taste_b[song]
+        max_value = max_value if max_value > taste_b[song] else taste_b[song]
+    
+    plot_taste(data_a, 'bo')
+    plot_taste(data_b, 'r+')
     
     # find where the two tastes share a song
+
     shared_taste = {}
-    for song in my_taste: 
-        if (song in taste_list['Alfrig']): 
-            shared_taste[song] = my_taste[song]
+    for song in taste_a: 
+        if (song in taste_b): 
+            shared_taste[song] = taste_a[song]
+            data_shared_a[song] = taste_a[song]
+            data_shared_b[song] = taste_b[song]
+
+#    plot_taste(data_shared_a, 'go')
+#    plot_taste(data_shared_b, 'g+')
     
-    plot_taste(shared_taste, 'go')
+#    for song in shared_taste:
+#        print(song)
+#        print(data_a[song])
+#        print(data_b[song])
+#        print(data_shared_a[song])
+#        print(data_shared_b[song])
     
-    plt.ylim(ymin=0)
+    plt.ylim(ymin = 0)
+    plt.ylim(ymax = max_value + 1)
+    frame.xaxis.set_ticks_position('none')
+    frame.yaxis.set_ticks_position('left')
     plt.show()
 
 # make a new taste
@@ -154,22 +192,32 @@ for profile in taste_list:
         most_similar_taste = taste_list[profile]
 #        print("---> choosing this one")
 
-plot_tastes(my_taste, most_similar_taste)
-
-
 ## Search the most_similar_taste for all the songs NOT in my_taste
 reccomended_songs = {}
 highest_reccomended = 0
+i = 0
 for song in most_similar_taste:
-    if (song in my_taste):
-        reccomended_songs[song] = most_similar_taste[song]
+    if (song not in my_taste):
+        similarity_weight = most_similar_taste[song]*largest_similarity
+        reccomended_songs[song] = similarity_weight
 #        print("[" + song + "]: " + str(reccomended_songs[song]))
-        highest_reccomended = highest_reccomended if most_similar_taste[song] < highest_reccomended else most_similar_taste[song]
+        highest_reccomended = highest_reccomended if highest_reccomended > similarity_weight else similarity_weight
         
 ## find most reccomended songs and work our way down
 print ("Reccomended Songs For You:")
 
 for song in reccomended_songs:
-#    if reccomended_songs[song] == highest_reccomended:
-        print("\"" + songs_by_id[song]['name'] + "\" by " + songs_by_id[song]['artist'] + " [weight of " + str(reccomended_songs[song]) +"]")
+    if reccomended_songs[song] > 2.0:
+        print("\"" + songs_by_id[song]['name'] + "\" by " + songs_by_id[song]['artist'] + " [weight of " + str(reccomended_songs[song]*largest_similarity) +"]")
     
+plot_tastes(my_taste, most_similar_taste)
+
+
+
+plt.figure()
+plot_taste(reccomended_songs, 'r+')
+plt.ylim(ymin = 0)
+plt.ylim(ymax = highest_reccomended + 1)
+plt.show()
+
+
